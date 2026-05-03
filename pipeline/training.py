@@ -1,3 +1,12 @@
+import sys
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
+import torch.nn as nn
+
 from member_1 import initialize_optimizer
 from member_2 import training_loop
 from member_3 import backpropagation_step
@@ -6,15 +15,6 @@ from member_5 import update_weights
 
 
 def safe_call(func, *args):
-    """
-    🔒 وظيفة مساعدة:
-    - بتنفذ الفانكشن
-    - لو مش متنفذة → warning
-    - وترجع أول argument عشان pipeline يكمل
-
-    💡 الهدف:
-    منع crash أثناء التطوير الجماعي
-    """
     try:
         return func(*args)
     except NotImplementedError as e:
@@ -24,101 +24,46 @@ def safe_call(func, *args):
 
 def run_training_pipeline(model, data):
     """
-    =========================
-    🏋️ TRAINING PIPELINE
-    =========================
-
-    🎯 الهدف:
-    تدريب الموديل باستخدام البيانات (بعد preprocessing + augmentation)
-
-    💡 من الورقة:
-    الأداء بيعتمد جدًا على:
-    - Learning rate schedule
-    - Regularization (label smoothing + noise)
+    TRAINING PIPELINE
+    Fix: `initialize_optimizer` attaches (optimizer, scheduler) to nn.Module — do not assign a tuple to `model`.
     """
+    if isinstance(model, nn.Module) and isinstance(data, dict):
+        if data.get("train_loader") is not None:
+            model.train_loader = data["train_loader"]
+        if data.get("test_loader") is not None:
+            model.test_loader = data["test_loader"]
 
-    # =========================
-    # 1. INITIALIZE OPTIMIZER
-    # =========================
-    """
-    👤 Member 1
-
-    🎯 المطلوب:
-    - تعريف optimizer (Adam غالبًا)
-    - تحديد learning rate schedule:
-        1. Warm-up (increase)
-        2. ثابت
-        3. Decay (exponential)
-
-    💡 من الورقة:
-    "learning rate schedule is critical for performance"
-    """
     model = safe_call(initialize_optimizer, model)
 
-    # =========================
-    # 2. TRAINING LOOP
-    # =========================
-    """
-    👤 Member 2
-
-    🎯 المطلوب:
-    - loop على epochs
-    - تمرير البيانات (forward pass)
-    - حساب loss
-
-    💡 مهم:
-    - استخدم augmented data
-    - training يكون batch-wise
-    """
     model = safe_call(training_loop, model, data)
 
-    # =========================
-    # 3. BACKPROPAGATION
-    # =========================
-    """
-    👤 Member 3
-
-    🎯 المطلوب:
-    - حساب gradients
-    - backward pass
-
-    💡 الهدف:
-    معرفة اتجاه تحسين weights
-    """
     model = safe_call(backpropagation_step, model, data)
 
-    # =========================
-    # 4. REGULARIZATION
-    # =========================
-    """
-    👤 Member 4
-
-    🎯 المطلوب:
-    تطبيق techniques لتقليل overfitting:
-
-    - Dropout
-    - Label smoothing (🔥 مهم جدًا في الورقة)
-    - ممكن Weight Noise
-
-    💡 من الورقة:
-    label smoothing ممكن يعمل instability لو مش مظبوط
-    """
     model = safe_call(apply_regularization, model)
 
-    # =========================
-    # 5. UPDATE WEIGHTS
-    # =========================
-    """
-    👤 Member 5
-
-    🎯 المطلوب:
-    - تحديث weights باستخدام optimizer
-
-    مثال:
-    optimizer.step()
-
-    💡 دي آخر خطوة في training step
-    """
     model = safe_call(update_weights, model)
 
     return model
+
+
+if __name__ == "__main__":
+    from pipeline.data import run_data_pipeline
+    from pipeline.model import run_model_pipeline
+    from pipeline.preprocessing import run_preprocessing_pipeline
+
+    print("[training] data -> preprocess ...")
+    data = run_preprocessing_pipeline(run_data_pipeline())
+    nc = data.get("num_classes") if isinstance(data, dict) else None
+    seq_len = data.get("target_sequence_length") if isinstance(data, dict) else None
+    print("[training] building model, num_classes=", nc, "target_sequence_length=", seq_len)
+    model = run_model_pipeline(num_classes=nc, target_sequence_length=seq_len)
+    model.train_epochs = 30
+    print("[training] run_training_pipeline ...")
+    model = run_training_pipeline(model, data)
+    hist = getattr(model, "train_loss_history", None)
+    print("[training] loss per epoch:", hist)
+
+    from pipeline.evaluation import run_evaluation_pipeline
+
+    metrics = run_evaluation_pipeline(model)
+    print("[training] test accuracy:", metrics.get("accuracy"), "wer:", metrics.get("wer"))
