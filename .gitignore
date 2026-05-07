@@ -1,3 +1,7 @@
 torchaudio
 .ipynb_checkpoints
 .idea
+__pycache__/
+*.pyc
+finetuned_model/
+data/
