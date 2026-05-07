@@ -1,7 +1,5 @@
+torchaudio
+.ipynb_checkpoints
+.idea
 .venv
-__pycache__
-.vs/
-data/
-*.db
-*.sqlite
-*.pth
+data

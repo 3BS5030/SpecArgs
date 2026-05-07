@@ -1,7 +1,0 @@
-# Torch + torchaudio: install matching wheels from pytorch.org if pip CPU/GPU differs.
-customtkinter>=5.2.0
-numpy>=1.24.0
-torch>=2.1.0
-torchaudio>=2.1.0
-soundfile>=0.12.1
-librosa>=0.10.0
