@@ -1,0 +1,12 @@
+customtkinter
+datasets
+evaluate
+librosa
+matplotlib
+numpy
+openai-whisper
+sounddevice
+soundfile
+torch
+torchaudio
+transformers
