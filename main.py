@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import sys
 import subprocess
 import threading
@@ -461,3 +462,9 @@ if __name__ == "__main__":
     else:
         app = SpecAugmentApp()
         app.mainloop()
+=======
+from member_5.pipeline import run_pipeline
+
+if __name__ == "__main__":
+    run_pipeline()
+>>>>>>> abdelrahman
