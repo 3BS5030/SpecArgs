@@ -1,7 +1,7 @@
 import random
 from dataclasses import dataclass
 from typing import Any
-from member_4.masking import freq_mask, time_mask
+from member_3.masking import freq_mask, time_mask
 
 
 @dataclass

@@ -1,6 +1,6 @@
 from member_1.audio_utils import load_audio, tfm_spectro
 from member_3.time_warp import time_warp
-from member_4.masking import freq_mask, time_mask
+from member_3.masking import freq_mask, time_mask
 from member_5.visualization import run_benchmark
 
 
