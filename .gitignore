@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-.venv
-__pycache__
-.vs/
-data/
-*.db
-*.sqlite
-*.pth
-=======
 torchaudio
 .ipynb_checkpoints
 .idea
@@ -14,4 +5,4 @@ __pycache__/
 *.pyc
 finetuned_model/
 data/
->>>>>>> abdelrahman
+LibriSpeech/
