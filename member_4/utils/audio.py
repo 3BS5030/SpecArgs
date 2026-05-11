@@ -1,6 +1,33 @@
 import os
+import numpy as np
 import soundfile as sf
 from datasets import Dataset
+
+
+def preprocess_audio(sig, sr, target_sr=16000, trim_silence=True, normalize=True):
+    import librosa
+    if sig is None or (isinstance(sig, np.ndarray) and sig.size == 0):
+        return np.zeros(0, dtype=np.float32), target_sr
+    sig = np.asarray(sig)
+    if np.issubdtype(sig.dtype, np.integer):
+        info = np.iinfo(sig.dtype)
+        sig = sig.astype(np.float32) / max(abs(info.min), abs(info.max))
+    else:
+        sig = sig.astype(np.float32)
+    if sig.ndim > 1:
+        sig = np.mean(sig, axis=1)
+    if sr != target_sr:
+        sig = librosa.resample(sig, orig_sr=sr, target_sr=target_sr)
+    if trim_silence and len(sig) > 0:
+        try:
+            sig, _ = librosa.effects.trim(sig, top_db=20)
+        except Exception:
+            pass
+    if normalize and len(sig) > 0:
+        peak = np.max(np.abs(sig))
+        if peak > 0:
+            sig = sig / peak * 0.95
+    return sig.astype(np.float32), target_sr
 
 
 def load_dataset_from_folder(folder, sample_rate=16000):
@@ -14,8 +41,8 @@ def load_dataset_from_folder(folder, sample_rate=16000):
                 with open(txt_path, 'r') as fh:
                     text = fh.read().strip()
                 sig, sr = sf.read(os.path.join(folder, f), dtype='float32')
-                if sr != sample_rate:
-                    sig = librosa.resample(sig, orig_sr=sr, target_sr=sample_rate)
-                rows.append({"audio": {"array": sig, "sampling_rate": sample_rate}, "text": text})
+                sig, sr = preprocess_audio(sig, sr, target_sr=sample_rate,
+                                           trim_silence=True, normalize=True)
+                rows.append({"audio": {"array": sig, "sampling_rate": sr}, "text": text})
     print(f"  Loaded {len(rows)} samples from {folder}")
     return Dataset.from_list(rows)
