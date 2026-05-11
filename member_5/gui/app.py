@@ -6,6 +6,7 @@ import numpy as np
 import sounddevice as sd
 import customtkinter as ctk
 from member_5.gui.components import RECORD_SECONDS, SAMPLE_RATE
+from member_4.tts import speak_text, TextToSpeechError
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
@@ -21,6 +22,7 @@ class SpeechApp(ctk.CTk):
         self.processor = None
         self.use_transformers = False
         self.is_recording = False
+        self.last_transcription = ""
 
         self.label = ctk.CTkLabel(self, text="Speech Recognition", font=("Arial", 22))
         self.label.pack(pady=20)
@@ -31,8 +33,14 @@ class SpeechApp(ctk.CTk):
         self.model_label = ctk.CTkLabel(self, text="", font=("Arial", 11))
         self.model_label.pack()
 
-        self.record_btn = ctk.CTkButton(self, text="🎤  Record", command=self.start_recording, width=160, height=40, font=("Arial", 14))
-        self.record_btn.pack(pady=10)
+        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        btn_frame.pack(pady=10)
+
+        self.record_btn = ctk.CTkButton(btn_frame, text="🎤  Record", command=self.start_recording, width=160, height=40, font=("Arial", 14))
+        self.record_btn.pack(side="left", padx=5)
+
+        self.speak_btn = ctk.CTkButton(btn_frame, text="🔊  Speak", command=self.speak_result, width=160, height=40, font=("Arial", 14), fg_color="#e67e22", hover_color="#d35400", state="disabled")
+        self.speak_btn.pack(side="left", padx=5)
 
         self.progress = ctk.CTkProgressBar(self, width=300)
         self.progress.pack(pady=5)
@@ -112,9 +120,8 @@ class SpeechApp(ctk.CTk):
                 result = self.model.transcribe(audio_flat, language="en")
                 text = result["text"].strip()
 
-            self.after(0, lambda t=text: (
-                self.result_box.insert("0.0", t if t else "(no speech detected)"),
-                self.status.configure(text="Done — Press Record to try again")))
+            self.last_transcription = text
+            self.after(0, lambda t=text: self._show_and_speak(t))
 
         except Exception as e:
             self.after(0, lambda: self.status.configure(text=f"Error: {e}"))
@@ -122,7 +129,36 @@ class SpeechApp(ctk.CTk):
 
         self.is_recording = False
         self.after(0, lambda: self.record_btn.configure(state="normal", text="🎤  Record"))
+        self.after(0, lambda: self.speak_btn.configure(state="normal" if self.last_transcription else "disabled"))
         self.after(0, lambda: self.progress.set(1))
+
+    def _show_and_speak(self, text):
+        """Display the transcription and speak it aloud."""
+        display = text if text else "(no speech detected)"
+        self.result_box.insert("0.0", display)
+        self.status.configure(text="Done — Press Record to try again")
+        if text:
+            self.speak_btn.configure(state="normal")
+            threading.Thread(target=self._do_speak, args=(text,), daemon=True).start()
+
+    def speak_result(self):
+        """Speak the last transcription result via TTS."""
+        text = self.last_transcription
+        if not text:
+            return
+        self.speak_btn.configure(state="disabled", text="🔊  Speaking...")
+        threading.Thread(target=self._do_speak, args=(text,), daemon=True).start()
+
+    def _do_speak(self, text):
+        """Run TTS in background thread."""
+        try:
+            speak_text(text)
+        except TextToSpeechError as e:
+            self.after(0, lambda: self.status.configure(text=f"TTS Error: {e}"))
+        except Exception as e:
+            self.after(0, lambda: self.status.configure(text=f"TTS Error: {e}"))
+        finally:
+            self.after(0, lambda: self.speak_btn.configure(state="normal", text="🔊  Speak"))
 
 
 def launch_app():
