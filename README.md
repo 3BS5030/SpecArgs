@@ -1,59 +1,222 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 12">
+  <img src="https://img.shields.io/badge/PyTorch-2.6-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch 2.6">
+  <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.12">
+  <img src="https://img.shields.io/badge/Flask-3.1-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask 3.1">
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/Bootstrap_5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap 5">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
 </p>
 
-## About Laravel
+<p align="center">
+  <img src="https://img.shields.io/github/license/your-username/brain-tumor" alt="License">
+  <img src="https://img.shields.io/github/stars/your-username/brain-tumor?style=social" alt="Stars">
+  <img src="https://img.shields.io/github/forks/your-username/brain-tumor?style=social" alt="Forks">
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+<h1 align="center">Brain Tumor MRI Classification</h1>
+<p align="center">
+  <strong>AI-Powered Brain Tumor Detection from MRI Scans</strong><br>
+  Upload MRI images and receive instant classification results with confidence scores.<br>
+  Built with Laravel + PyTorch, featuring bilingual support (English/Arabic) and a modern clinical-grade UI.
+</p>
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Features
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+| Feature | Description |
+|---------|-------------|
+| **MRI Scan Upload** | Upload JPG/PNG images securely via the web interface |
+| **AI Classification** | PyTorch CNN model classifies tumors into 4 categories |
+| **Confidence Scores** | Per-class probability breakdown with visual progress bars |
+| **Prediction History** | Full history dashboard tied to authenticated users |
+| **User Authentication** | Secure registration/login with session-based auth |
+| **Bilingual UI** | Full English and Arabic support with RTL layout |
+| **Dark / Light Theme** | Toggle between themes, persisted in localStorage |
+| **Docker Ready** | One-command deploy with Docker + Railway support |
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Classifiable Tumor Types
 
-## Laravel Sponsors
+| Label | Description |
+|-------|-------------|
+| Glioma | Tumor originating from glial cells |
+| Meningioma | Tumor arising from the meninges |
+| Pituitary | Pituitary gland tumor |
+| No Tumor | Healthy brain scan |
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## Architecture
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```
++------------------+        +--------------------------------+
+|                  |  HTTP  |                                |
+|   Laravel 12     |<------>|   Flask Inference Service      |
+|   (Web + Auth)   |        |   (PyTorch CNN Model)          |
+|                  |        |                                |
++------------------+        +--------------------------------+
+         |                            |
+         v                            v
+   +----------+               +------------------+
+   | SQLite / |               | best_model       |
+   | Postgres |               | .pth weights     |
+   +----------+               +------------------+
+```
 
-## Contributing
+The system uses a **two-service architecture**:
+- **Laravel** handles user authentication, file uploads, prediction history, and the web UI
+- **Flask + PyTorch** runs the deep learning inference as a dedicated microservice
+- Communication occurs over HTTP -- the Laravel app sends the image to Flask and receives predictions
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Neural Network
 
-## Code of Conduct
+The classifier is a **Convolutional Neural Network (CNN)** built with PyTorch:
+- 2 convolutional layers (ReLU + MaxPool)
+- 2 fully connected layers
+- Input: 224x224 RGB images
+- Normalization: ImageNet mean/std
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## Tech Stack
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Laravel 12 (PHP 8.2) |
+| **Frontend** | Blade + Bootstrap 5 + Tailwind CSS 4 |
+| **ML Engine** | PyTorch 2.6 (CPU) |
+| **ML API** | Flask 3.1 |
+| **Database** | SQLite (dev) / PostgreSQL (prod) |
+| **Build Tool** | Vite 7 + Laravel Vite Plugin |
+| **Container** | Docker + Supervisor |
+| **Cloud** | Railway ready |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- PHP ^8.2
+- Composer 2
+- Node.js ^20
+- Python 3.8+
+
+### Installation
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-username/brain-tumor.git
+cd brain-tumor
+
+# 2. Install PHP dependencies
+composer install
+
+# 3. Install Node dependencies
+npm install
+
+# 4. Environment setup
+cp .env.example .env
+php artisan key:generate
+
+# 5. Run database migrations
+php artisan migrate
+
+# 6. Install Python dependencies
+cd app/Infrastructure/Prediction/Python
+pip install -r requirements.txt
+cd ../../../../
+
+# 7. Start the Flask inference service
+python app/Infrastructure/Prediction/Python/prediction_server.py &
+
+# 8. Build frontend assets
+npm run build
+
+# 9. Start Laravel dev server
+php artisan serve
+```
+
+### Docker Deploy
+
+```bash
+docker build -t brain-tumor .
+docker run -p 8080:80 brain-tumor
+```
+
+---
+
+## Usage
+
+1. **Register** an account at `/register`
+2. **Log in** at `/login`
+3. Navigate to **Scan** and upload an MRI image
+4. View the **prediction result** with per-class confidence scores
+5. Access your full **prediction history** from the dashboard
+
+---
+
+## Project Structure
+
+```
+app/
++-- Application/Prediction/UseCases/     # Application business logic
++-- Domain/Prediction/Contracts/          # Domain interfaces
++-- Http/
+|   +-- Controllers/                      # Auth, Dashboard, Locale
+|   +-- Middleware/                       # Locale middleware
++-- Infrastructure/
+|   +-- Persistence/Prediction/           # Eloquent repositories
+|   +-- Prediction/Python/               # Flask server + PyTorch model
++-- Models/                               # User, PredictionHistory
++-- Providers/                            # AppServiceProvider
+resources/
++-- lang/{en,ar}/                        # Bilingual translations
++-- views/                               # Blade templates
+routes/web.php                            # All web routes
+config/brain_tumor.php                    # Prediction service config
+```
+
+---
+
+## Configuration
+
+Key environment variables in `.env`:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BRAIN_TUMOR_SERVICE_URL` | `http://127.0.0.1:5001` | Flask service URL |
+| `BRAIN_TUMOR_MODEL_PATH` | `app/.../best_model.pth` | Path to model weights |
+| `BRAIN_TUMOR_IMAGE_SIZE` | `224` | Input image size (px) |
+| `BRAIN_TUMOR_CLASS_LABELS` | `glioma,meningioma,notumor,pituitary` | Classification labels |
+
+---
+
+## Roadmap
+
+- [x] User authentication
+- [x] MRI upload and classification
+- [x] Prediction history dashboard
+- [x] Bilingual (EN/AR) support
+- [x] Dark/light theme
+- [x] Docker deployment
+- [ ] Additional model architectures (ResNet, EfficientNet)
+- [ ] Batch upload support
+- [ ] API rate limiting
+- [ ] Patient report PDF export
+- [ ] Integration with DICOM viewers
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is open-sourced software licensed under the [MIT license](LICENSE).
+
+---
+
+<p align="center">
+  <sub>Built with dedication to advancing medical AI diagnostics.</sub>
+</p>
