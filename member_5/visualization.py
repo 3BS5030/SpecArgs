@@ -3,7 +3,7 @@ import time
 
 def run_benchmark(spec, iterations=5):
     from member_3.time_warp import time_warp
-    from member_4.masking import freq_mask, time_mask
+    from member_3.masking import freq_mask, time_mask
 
     print(f"  Running {iterations} iterations of each transform...\n")
 

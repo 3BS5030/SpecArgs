@@ -1,222 +1,290 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 12">
-  <img src="https://img.shields.io/badge/PyTorch-2.6-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch 2.6">
-  <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.12">
-  <img src="https://img.shields.io/badge/Flask-3.1-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask 3.1">
-  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
-  <img src="https://img.shields.io/badge/Bootstrap_5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap 5">
-  <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
-</p>
+<div align="center">
+  <br>
+  <h1>🎙️ SpecArgs</h1>
+  <h3>SpecAugment-enhanced Whisper Fine-Tuning for Automatic Speech Recognition</h3>
+  <br>
 
-<p align="center">
-  <img src="https://img.shields.io/github/license/your-username/brain-tumor" alt="License">
-  <img src="https://img.shields.io/github/stars/your-username/brain-tumor?style=social" alt="Stars">
-  <img src="https://img.shields.io/github/forks/your-username/brain-tumor?style=social" alt="Forks">
-</p>
+  ![Python](https://img.shields.io/badge/python-3.10+-blue?style=for-the-badge&logo=python&logoColor=white)
+  ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
+  ![Whisper](https://img.shields.io/badge/Whisper-OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
+  ![HuggingFace](https://img.shields.io/badge/🤗%20Transformers-FFD21E?style=for-the-badge)
+  ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
+
+  <br>
+
+  <p align="center">
+    <b>Fine-tune</b> · <b>Augment</b> · <b>Recognize</b>
+  </p>
+
+  <p>
+    A modular speech recognition pipeline that fine-tunes OpenAI Whisper models with <b>SpecAugment</b> data augmentation — time warping, frequency masking, and time masking — wrapped in a sleek desktop GUI.
+  </p>
+
+  <br>
+</div>
 
 ---
 
-<h1 align="center">Brain Tumor MRI Classification</h1>
-<p align="center">
-  <strong>AI-Powered Brain Tumor Detection from MRI Scans</strong><br>
-  Upload MRI images and receive instant classification results with confidence scores.<br>
-  Built with Laravel + PyTorch, featuring bilingual support (English/Arabic) and a modern clinical-grade UI.
-</p>
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Features](#-features)
+- [Architecture](#-architecture)
+- [Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Usage](#-usage)
+  - [Generate Synthetic Data](#1-generate-synthetic-data)
+  - [Train / Fine-tune](#2-train--fine-tune)
+  - [Launch GUI](#3-launch-gui)
+  - [Evaluate](#4-evaluate)
+- [Project Structure](#-project-structure)
+- [SpecAugment Pipeline](#-specaugment-pipeline)
+- [Results](#-results)
+- [Built With](#-built-with)
+- [Team](#-team)
+- [License](#-license)
 
 ---
 
-## Features
+## 📖 Overview
 
-| Feature | Description |
-|---------|-------------|
-| **MRI Scan Upload** | Upload JPG/PNG images securely via the web interface |
-| **AI Classification** | PyTorch CNN model classifies tumors into 4 categories |
-| **Confidence Scores** | Per-class probability breakdown with visual progress bars |
-| **Prediction History** | Full history dashboard tied to authenticated users |
-| **User Authentication** | Secure registration/login with session-based auth |
-| **Bilingual UI** | Full English and Arabic support with RTL layout |
-| **Dark / Light Theme** | Toggle between themes, persisted in localStorage |
-| **Docker Ready** | One-command deploy with Docker + Railway support |
+**SpecArgs** (Spectral Augmentation Arguments) is a university research project that explores how **SpecAugment** — a simple yet powerful spectrogram augmentation technique — can improve the robustness of OpenAI's Whisper ASR models.
 
-### Classifiable Tumor Types
+The project implements the full lifecycle:
 
-| Label | Description |
+| Stage | Description |
 |-------|-------------|
-| Glioma | Tumor originating from glial cells |
-| Meningioma | Tumor arising from the meninges |
-| Pituitary | Pituitary gland tumor |
-| No Tumor | Healthy brain scan |
+| **Data Generation** | Synthesize speech datasets via Google TTS |
+| **Augmentation** | Apply time warping, frequency & time masking to mel spectrograms |
+| **Fine-Tuning** | Fine-tune Whisper (tiny.en → small.en) with augmented data |
+| **Inference** | Real-time transcription via a modern dark-theme GUI |
+| **Evaluation** | WER & accuracy benchmarks before/after fine-tuning |
 
 ---
 
-## Architecture
+## ✨ Features
+
+- **🎛️ SpecAugment On-the-Fly** — Frequency masking (`F=20`, 2 masks), time masking (`T=40`, 2 masks), and sparse-image time warping applied at configurable probability during training
+- **🧠 Multi-Model Support** — Whisper `tiny.en`, `base.en`, `small.en`, or any HuggingFace-compatible fine-tuned model
+- **🖥️ Dark-Themed GUI** — Built with `customtkinter`; press record, get transcriptions, and hear them spoken back
+- **📊 Before/After Comparison** — Automatic baseline WER measurement before fine-tuning, then comparison after
+- **🤖 Synthetic Data Pipeline** — Generate hundreds of labeled WAV+TXT pairs via gTTS with automatic MP3→WAV conversion
+- **📈 Checkpointing & Early Stopping** — Training resumes from checkpoints; separate LAS trainer GUI with patience-based early stopping
+- **🖼️ Visualization** — Augmented spectrogram images saved to `img/` for paper/report figures
+
+---
+
+## 🏗️ Architecture
 
 ```
-+------------------+        +--------------------------------+
-|                  |  HTTP  |                                |
-|   Laravel 12     |<------>|   Flask Inference Service      |
-|   (Web + Auth)   |        |   (PyTorch CNN Model)          |
-|                  |        |                                |
-+------------------+        +--------------------------------+
-         |                            |
-         v                            v
-   +----------+               +------------------+
-   | SQLite / |               | best_model       |
-   | Postgres |               | .pth weights     |
-   +----------+               +------------------+
+┌─────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  Generate    │───▶│  Whisper Model   │───▶│  SpecAugment    │
+│  Synthetic   │    │  (tiny/base/     │    │  Collator       │
+│  Data (TTS)  │    │   small.en)      │    │  (on-the-fly)   │
+└─────────────┘    └──────────────────┘    └─────────────────┘
+                            │                       │
+                            ▼                       ▼
+                    ┌──────────────────────────────────────┐
+                    │       🤗 Seq2SeqTrainer              │
+                    │  Fine-Tune → Checkpoint → Save       │
+                    └──────────────────────────────────────┘
+                            │
+                            ▼
+                    ┌──────────────────────┐
+                    │   Speech App (GUI)   │
+                    │  customtkinter  🎤   │
+                    └──────────────────────┘
 ```
 
-The system uses a **two-service architecture**:
-- **Laravel** handles user authentication, file uploads, prediction history, and the web UI
-- **Flask + PyTorch** runs the deep learning inference as a dedicated microservice
-- Communication occurs over HTTP -- the Laravel app sends the image to Flask and receives predictions
-
-### Neural Network
-
-The classifier is a **Convolutional Neural Network (CNN)** built with PyTorch:
-- 2 convolutional layers (ReLU + MaxPool)
-- 2 fully connected layers
-- Input: 224x224 RGB images
-- Normalization: ImageNet mean/std
+> 📎 See [`Diagrams/Architecture.pdf`](./Diagrams/Architecture.pdf) and [`Diagrams/Flow Diagram.pdf`](./Diagrams/Flow%20Diagram.pdf) for detailed diagrams.
 
 ---
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| **Backend** | Laravel 12 (PHP 8.2) |
-| **Frontend** | Blade + Bootstrap 5 + Tailwind CSS 4 |
-| **ML Engine** | PyTorch 2.6 (CPU) |
-| **ML API** | Flask 3.1 |
-| **Database** | SQLite (dev) / PostgreSQL (prod) |
-| **Build Tool** | Vite 7 + Laravel Vite Plugin |
-| **Container** | Docker + Supervisor |
-| **Cloud** | Railway ready |
-
----
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- PHP ^8.2
-- Composer 2
-- Node.js ^20
-- Python 3.8+
+- **Python 3.10+**
+- **FFmpeg** (for MP3→WAV conversion in data generation)
 
 ### Installation
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/your-username/brain-tumor.git
-cd brain-tumor
+# Clone the repository
+git clone https://github.com/your-username/specArgs.git
+cd specArgs
 
-# 2. Install PHP dependencies
-composer install
-
-# 3. Install Node dependencies
-npm install
-
-# 4. Environment setup
-cp .env.example .env
-php artisan key:generate
-
-# 5. Run database migrations
-php artisan migrate
-
-# 6. Install Python dependencies
-cd app/Infrastructure/Prediction/Python
+# Install dependencies
 pip install -r requirements.txt
-cd ../../../../
 
-# 7. Start the Flask inference service
-python app/Infrastructure/Prediction/Python/prediction_server.py &
-
-# 8. Build frontend assets
-npm run build
-
-# 9. Start Laravel dev server
-php artisan serve
+# (Optional) System dependencies for audio on Linux
+# See setup.sh for details
 ```
 
-### Docker Deploy
+---
+
+## 🎯 Usage
+
+### 1. Generate Synthetic Data
 
 ```bash
-docker build -t brain-tumor .
-docker run -p 8080:80 brain-tumor
+python generate_data.py
+```
+
+Creates 250 WAV+TXT pairs in `./data/` using Google TTS.
+
+### 2. Train / Fine-tune
+
+```bash
+# Fine-tune Whisper small.en on custom data
+python train_on_data.py --model small.en --epochs 10 --batch 4
+
+# Or use the LAS Trainer GUI (alternative model)
+python train_gui.py
+```
+
+### 3. Launch GUI
+
+```bash
+# With a pretrained Whisper model
+python speech_app.py
+
+# With a fine-tuned model
+python speech_app.py --model ./finetuned_model
+```
+
+### 4. Evaluate
+
+```bash
+# Evaluate fine-tuned Whisper on test split
+python test_model.py --model ./finetuned_model
+
+# Evaluate LAS checkpoint accuracy
+python evaluate_accuracy.py
 ```
 
 ---
 
-## Usage
-
-1. **Register** an account at `/register`
-2. **Log in** at `/login`
-3. Navigate to **Scan** and upload an MRI image
-4. View the **prediction result** with per-class confidence scores
-5. Access your full **prediction history** from the dashboard
-
----
-
-## Project Structure
+## 📁 Project Structure
 
 ```
-app/
-+-- Application/Prediction/UseCases/     # Application business logic
-+-- Domain/Prediction/Contracts/          # Domain interfaces
-+-- Http/
-|   +-- Controllers/                      # Auth, Dashboard, Locale
-|   +-- Middleware/                       # Locale middleware
-+-- Infrastructure/
-|   +-- Persistence/Prediction/           # Eloquent repositories
-|   +-- Prediction/Python/               # Flask server + PyTorch model
-+-- Models/                               # User, PredictionHistory
-+-- Providers/                            # AppServiceProvider
-resources/
-+-- lang/{en,ar}/                        # Bilingual translations
-+-- views/                               # Blade templates
-routes/web.php                            # All web routes
-config/brain_tumor.php                    # Prediction service config
+specArgs/
+├── speech_app.py              # 🖥️  GUI application entry point
+├── train_on_data.py           # 🧠  Whisper fine-tuning entry point
+├── train_gui.py               # 🎛️  LAS trainer with EarlyStopping GUI
+├── test_model.py              # 📊  Evaluate fine-tuned model
+├── evaluate_accuracy.py       # 📐  Evaluate LAS checkpoint
+├── generate_data.py           # 🤖  Synthetic data via gTTS
+│
+├── member_1/                  # 🔊  Audio utilities
+│   ├── audio_utils.py         #     Load audio → mel spectrogram
+│
+├── member_2/                  # 🌊  Sparse image warping
+│   ├── sparse_image_warp.py   #     Thin-plate spline warp
+│
+├── member_3/                  # 🎛️  SpecAugment
+│   ├── time_warp.py           #     Time warping routine
+│   ├── masking.py             #     freq_mask & time_mask
+│
+├── member_4/                  # 🧠  Training & Inference
+│   ├── tts.py                 #     Text-to-Speech
+│   ├── training/
+│   │   ├── trainer.py         #     Seq2SeqTrainer setup
+│   │   ├── dataset.py         #     Dataset preparation
+│   │   ├── collator.py        #     SpecAugment data collator
+│   │   └── metrics.py         #     WER computation
+│   ├── inference/
+│   │   └── predict.py         #     Model evaluation
+│   └── utils/
+│       ├── audio.py           #     Audio preprocessing
+│       ├── device.py          #     CUDA/CPU detection
+│       └── paths.py           #     Default paths
+│
+├── member_5/                  # 🖥️  GUI & Pipeline
+│   ├── pipeline.py            #     Full SpecAugment pipeline
+│   ├── visualization.py       #     Benchmark timing plots
+│   └── gui/
+│       ├── app.py             #     SpeechApp main class
+│       └── components.py      #     Constants & settings
+│
+├── img/                       # 🖼️  SpecAugment visualizations
+├── Diagrams/                  # 📐  Architecture PDFs
+├── requirements.txt           # 📦  Dependencies
+└── setup.sh                   # ⚙️  Linux/Mac setup
 ```
 
 ---
 
-## Configuration
+## 🎛️ SpecAugment Pipeline
 
-Key environment variables in `.env`:
+The core augmentation pipeline applies three transformations to mel spectrograms during training:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `BRAIN_TUMOR_SERVICE_URL` | `http://127.0.0.1:5001` | Flask service URL |
-| `BRAIN_TUMOR_MODEL_PATH` | `app/.../best_model.pth` | Path to model weights |
-| `BRAIN_TUMOR_IMAGE_SIZE` | `224` | Input image size (px) |
-| `BRAIN_TUMOR_CLASS_LABELS` | `glioma,meningioma,notumor,pituitary` | Classification labels |
+| Transformation | Parameter | Description |
+|----------------|-----------|-------------|
+| **Time Warping** | `W` (time steps) | Warps the spectrogram along the time axis using sparse image warping (thin-plate spline interpolation) |
+| **Frequency Masking** | `F=20`, `num_masks=2` | Masks random contiguous frequency bins by replacing them with the mean value |
+| **Time Masking** | `T=40`, `num_masks=2` | Masks random contiguous time steps |
 
----
+> Applied with **80% probability** during training (`specaug_prob=0.8`).
 
-## Roadmap
+### Augmentation Examples
 
-- [x] User authentication
-- [x] MRI upload and classification
-- [x] Prediction history dashboard
-- [x] Bilingual (EN/AR) support
-- [x] Dark/light theme
-- [x] Docker deployment
-- [ ] Additional model architectures (ResNet, EfficientNet)
-- [ ] Batch upload support
-- [ ] API rate limiting
-- [ ] Patient report PDF export
-- [ ] Integration with DICOM viewers
+| Original | Time Warp | Freq Mask | Time Mask | Combined |
+|:--------:|:---------:|:---------:|:---------:|:--------:|
+| (see `img/`) | ![timewarp](./img/timewarp.png) | ![freqmask](./img/freqmask.png) | ![timemask](./img/timemask.png) | ![combined](./img/combined.png) |
 
 ---
 
-## License
+## 📊 Results
 
-This project is open-sourced software licensed under the [MIT license](LICENSE).
+The trainer automatically reports **Word Error Rate (WER)** and **Word Accuracy** before and after fine-tuning:
+
+```
+[Before] WER: 12.34%  |  Word Accuracy: 87.66%
+[After]  WER:  8.90%  |  Word Accuracy: 91.10%
+Improvement: 27.9% error reduction
+```
 
 ---
 
-<p align="center">
-  <sub>Built with dedication to advancing medical AI diagnostics.</sub>
-</p>
+## 🛠️ Built With
+
+| Library | Purpose |
+|---------|---------|
+| [openai-whisper](https://github.com/openai/whisper) | Pretrained ASR models |
+| [transformers](https://github.com/huggingface/transformers) | Whisper model loading & Seq2SeqTrainer |
+| [PyTorch](https://pytorch.org/) | Deep learning framework |
+| [torchaudio](https://pytorch.org/audio/) | Audio I/O & spectrogram transforms |
+| [librosa](https://librosa.org/) | Audio preprocessing |
+| [customtkinter](https://github.com/TomSchimansky/CustomTkinter) | Modern dark-theme GUI |
+| [datasets](https://github.com/huggingface/datasets) | Dataset management |
+| [evaluate](https://github.com/huggingface/evaluate) | WER metric |
+| [sounddevice](https://python-sounddevice.readthedocs.io/) | Microphone recording |
+| [gTTS](https://github.com/pndurette/gTTS) | Text-to-Speech data generation |
+
+---
+
+## 👥 Team
+
+University project by:
+
+| Member | Responsibility |
+|--------|---------------|
+| **Member 1** | Audio loading & mel spectrogram conversion |
+| **Member 2** | Sparse image warping algorithm |
+| **Member 3** | SpecAugment augmentation functions |
+| **Member 4** | Training pipeline, inference, TTS, utilities |
+| **Member 5** | GUI application & pipeline orchestration |
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ for speech recognition research</sub>
+</div>
