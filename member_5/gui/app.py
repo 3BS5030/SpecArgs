@@ -1,39 +1,64 @@
 import argparse
 import os
+import sys
 import threading
-import torch
+
 import numpy as np
-import sounddevice as sd
-import customtkinter as ctk
+
+try:
+    import torch
+except ImportError:
+    torch = None
+
+try:
+    import customtkinter as ctk
+
+    ctk.set_appearance_mode("dark")
+    ctk.set_default_color_theme("green")
+except ImportError:
+    ctk = None
+
 from member_5.gui.components import RECORD_SECONDS, SAMPLE_RATE
-from member_4.tts import speak_text, TextToSpeechError
-
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("green")
 
 
-class SpeechApp(ctk.CTk):
+class MissingDependencyError(RuntimeError):
+    pass
+
+
+class SpeechApp:
     def __init__(self, model_spec):
-        super().__init__()
+        if ctk is None:
+            raise MissingDependencyError(
+                "customtkinter / tkinter is not installed.\n"
+                "  Install it with:  sudo apt install python3-tk\n"
+                "  Then:             pip3 install customtkinter"
+            )
+        if torch is None:
+            raise MissingDependencyError(
+                "PyTorch is not installed.\n"
+                "  Install it with:  pip3 install torch"
+            )
+
+        self.root = ctk.CTk()
         self.model_spec = model_spec
-        self.title("Speech Recognition")
-        self.geometry("550x420")
+        self.root.title("Speech Recognition")
+        self.root.geometry("550x420")
         self.model = None
         self.processor = None
         self.use_transformers = False
         self.is_recording = False
         self.last_transcription = ""
 
-        self.label = ctk.CTkLabel(self, text="Speech Recognition", font=("Arial", 22))
+        self.label = ctk.CTkLabel(self.root, text="Speech Recognition", font=("Arial", 22))
         self.label.pack(pady=20)
 
-        self.status = ctk.CTkLabel(self, text="Loading model...", font=("Arial", 13))
+        self.status = ctk.CTkLabel(self.root, text="Loading model...", font=("Arial", 13))
         self.status.pack(pady=5)
 
-        self.model_label = ctk.CTkLabel(self, text="", font=("Arial", 11))
+        self.model_label = ctk.CTkLabel(self.root, text="", font=("Arial", 11))
         self.model_label.pack()
 
-        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        btn_frame = ctk.CTkFrame(self.root, fg_color="transparent")
         btn_frame.pack(pady=10)
 
         self.record_btn = ctk.CTkButton(btn_frame, text="🎤  Record", command=self.start_recording, width=160, height=40, font=("Arial", 14))
@@ -42,21 +67,21 @@ class SpeechApp(ctk.CTk):
         self.speak_btn = ctk.CTkButton(btn_frame, text="🔊  Speak", command=self.speak_result, width=160, height=40, font=("Arial", 14), fg_color="#e67e22", hover_color="#d35400", state="disabled")
         self.speak_btn.pack(side="left", padx=5)
 
-        self.progress = ctk.CTkProgressBar(self, width=300)
+        self.progress = ctk.CTkProgressBar(self.root, width=300)
         self.progress.pack(pady=5)
         self.progress.set(0)
 
-        self.result_box = ctk.CTkTextbox(self, height=120, width=450, font=("Arial", 13), wrap="word")
+        self.result_box = ctk.CTkTextbox(self.root, height=120, width=450, font=("Arial", 13), wrap="word")
         self.result_box.pack(pady=10)
 
-        self.info = ctk.CTkLabel(self, text="", font=("Arial", 11))
+        self.info = ctk.CTkLabel(self.root, text="", font=("Arial", 11))
         self.info.pack()
 
-        self.after(100, self.load_model)
+        self.root.after(100, self.load_model)
 
     def load_model(self):
         self.status.configure(text="Loading model...")
-        self.update()
+        self.root.update()
 
         def _load():
             try:
@@ -70,17 +95,17 @@ class SpeechApp(ctk.CTk):
                     device = "cuda" if torch.cuda.is_available() else "cpu"
                     self.model.to(device)
                     name = os.path.basename(os.path.normpath(spec))
-                    self.after(0, lambda: self.model_label.configure(text=f"Model: {name} ({device.upper()})"))
+                    self.root.after(0, lambda: self.model_label.configure(text=f"Model: {name} ({device.upper()})"))
                 else:
                     self.use_transformers = False
                     import whisper
                     self.model = whisper.load_model(spec)
-                    self.after(0, lambda: self.model_label.configure(text=f"Model: {spec}"))
+                    self.root.after(0, lambda: self.model_label.configure(text=f"Model: {spec}"))
 
-                self.after(0, lambda: self.status.configure(text="Ready — press Record and speak"))
+                self.root.after(0, lambda: self.status.configure(text="Ready \u2014 press Record and speak"))
 
             except Exception as e:
-                self.after(0, lambda: self.status.configure(text=f"Error: {e}"))
+                self.root.after(0, lambda: self.status.configure(text=f"Error: {e}"))
 
         threading.Thread(target=_load, daemon=True).start()
 
@@ -96,6 +121,21 @@ class SpeechApp(ctk.CTk):
 
     def _record_and_transcribe(self):
         try:
+            import sounddevice as sd
+        except ImportError:
+            self.root.after(0, lambda: self.status.configure(text="Install sounddevice & portaudio for recording"))
+            self.root.after(0, lambda: self.result_box.insert("0.0", "Missing: pip install sounddevice\nSystem: sudo apt install libportaudio2"))
+            self.is_recording = False
+            self.root.after(0, lambda: self.record_btn.configure(state="normal", text="🎤  Record"))
+            return
+        except OSError:
+            self.root.after(0, lambda: self.status.configure(text="PortAudio library not found"))
+            self.root.after(0, lambda: self.result_box.insert("0.0", "Missing: sudo apt install libportaudio2"))
+            self.is_recording = False
+            self.root.after(0, lambda: self.record_btn.configure(state="normal", text="🎤  Record"))
+            return
+
+        try:
             audio = sd.rec(int(RECORD_SECONDS * SAMPLE_RATE), samplerate=SAMPLE_RATE, channels=1, dtype="float32")
             for i in range(RECORD_SECONDS * 10):
                 if not self.is_recording:
@@ -105,8 +145,8 @@ class SpeechApp(ctk.CTk):
             sd.wait()
 
             audio_flat = audio.flatten()
-            self.after(0, lambda: self.status.configure(text="Transcribing..."))
-            self.after(0, lambda: self.progress.set(0))
+            self.root.after(0, lambda: self.status.configure(text="Transcribing..."))
+            self.root.after(0, lambda: self.progress.set(0))
 
             if self.use_transformers:
                 inputs = self.processor(audio_flat, sampling_rate=SAMPLE_RATE, return_tensors="pt")
@@ -121,28 +161,26 @@ class SpeechApp(ctk.CTk):
                 text = result["text"].strip()
 
             self.last_transcription = text
-            self.after(0, lambda t=text: self._show_and_speak(t))
+            self.root.after(0, lambda t=text: self._show_and_speak(t))
 
         except Exception as e:
-            self.after(0, lambda: self.status.configure(text=f"Error: {e}"))
-            self.after(0, lambda: self.result_box.insert("0.0", f"Error: {e}"))
+            self.root.after(0, lambda: self.status.configure(text=f"Error: {e}"))
+            self.root.after(0, lambda: self.result_box.insert("0.0", f"Error: {e}"))
 
         self.is_recording = False
-        self.after(0, lambda: self.record_btn.configure(state="normal", text="🎤  Record"))
-        self.after(0, lambda: self.speak_btn.configure(state="normal" if self.last_transcription else "disabled"))
-        self.after(0, lambda: self.progress.set(1))
+        self.root.after(0, lambda: self.record_btn.configure(state="normal", text="🎤  Record"))
+        self.root.after(0, lambda: self.speak_btn.configure(state="normal" if self.last_transcription else "disabled"))
+        self.root.after(0, lambda: self.progress.set(1))
 
     def _show_and_speak(self, text):
-        """Display the transcription and speak it aloud."""
         display = text if text else "(no speech detected)"
         self.result_box.insert("0.0", display)
-        self.status.configure(text="Done — Press Record to try again")
+        self.status.configure(text="Done \u2014 Press Record to try again")
         if text:
             self.speak_btn.configure(state="normal")
             threading.Thread(target=self._do_speak, args=(text,), daemon=True).start()
 
     def speak_result(self):
-        """Speak the last transcription result via TTS."""
         text = self.last_transcription
         if not text:
             return
@@ -150,20 +188,34 @@ class SpeechApp(ctk.CTk):
         threading.Thread(target=self._do_speak, args=(text,), daemon=True).start()
 
     def _do_speak(self, text):
-        """Run TTS in background thread."""
+        try:
+            from member_4.tts import speak_text, TextToSpeechError
+        except ImportError:
+            self.root.after(0, lambda: self.status.configure(text="TTS module not available"))
+            self.root.after(0, lambda: self.speak_btn.configure(state="normal", text="🔊  Speak"))
+            return
+
         try:
             speak_text(text)
         except TextToSpeechError as e:
-            self.after(0, lambda: self.status.configure(text=f"TTS Error: {e}"))
+            self.root.after(0, lambda: self.status.configure(text=f"TTS Error: {e}"))
         except Exception as e:
-            self.after(0, lambda: self.status.configure(text=f"TTS Error: {e}"))
+            self.root.after(0, lambda: self.status.configure(text=f"TTS Error: {e}"))
         finally:
-            self.after(0, lambda: self.speak_btn.configure(state="normal", text="🔊  Speak"))
+            self.root.after(0, lambda: self.speak_btn.configure(state="normal", text="🔊  Speak"))
 
 
 def launch_app():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="tiny.en", help="model name (tiny, base, small) or path to finetuned model folder")
     args = parser.parse_args()
-    app = SpeechApp(args.model)
-    app.mainloop()
+
+    try:
+        app = SpeechApp(args.model)
+        app.root.mainloop()
+    except MissingDependencyError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}", file=sys.stderr)
+        sys.exit(1)
